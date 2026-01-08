@@ -1,0 +1,19 @@
+[project]
+name = "Bloggr"
+version = "1.0.0"
+description = "A basic blogging app built with python and flask"
+dependencies = [
+    "flask",
+]
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["bloggr"]
