@@ -5,7 +5,8 @@
     <h1>Bloggr</h1>
   <ul>
     {% if g.user %}
-        <li><span>{{ g.user['username'] }}</span>
+        <!-- <li><span>{{ g.user['username'] }}</span> -->
+        <li><a href="{{ url_for('auth.profile_page') }}">{{ g.user['username'] }}</a>
         <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
     {% else %}
         <li><a href="{{ url_for('auth.register') }}">Register</a>

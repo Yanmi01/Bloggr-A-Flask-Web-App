@@ -1,6 +1,12 @@
 from flask import Flask
+from flask_mail import Mail
+from dotenv import load_dotenv
+
 import os
 
+load_dotenv()
+
+mail = Mail()
 
 def create_app(test_config=None):
     #create and configure the app
@@ -8,8 +14,18 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY = "dev",
         DATABASE = os.path.join(app.instance_path, "BLOGGR.sqlite"),
-    )
 
+        GOOGLE_CLIENT_ID=os.environ.get('GOOGLE_CLIENT_ID'),
+        GOOGLE_CLIENT_SECRET=os.environ.get('GOOGLE_CLIENT_SECRET'),
+
+        MAIL_SERVER='smtp.gmail.com',
+        MAIL_PORT=587,
+        MAIL_USE_TLS=True,
+        MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
+        MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),
+        MAIL_DEFAULT_SENDER=os.environ.get('MAIL_DEFAULT_SENDER'),
+    )
+    
     if test_config is None:
         #load the instance config, if it exists, when not testing
         app.config.from_pyfile("config.py", silent=True)
@@ -24,15 +40,19 @@ def create_app(test_config=None):
         pass 
 
     # a simple page that says hello
-    @app.route("/hello")
-    def hello():
-        return "Hello, to the World!"
+    # @app.route("/hello")
+    # def hello():
+    #     return "Hello, to the World!"
     
+    mail.init_app(app)
+
     from . import db
     db.init_app(app)
     
     from . import auth
     app.register_blueprint(auth.bp)
+
+    auth.google = auth.init_oauth(app)
 
     from . import blog
     app.register_blueprint(blog.bp)

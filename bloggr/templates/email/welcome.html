@@ -1,0 +1,28 @@
+{% extends 'email/base.html' %}
+
+{% block title %}Welcome to Bloggr!{% endblock %}
+
+{% block content %}
+    <p>Hello {{ username }},</p>
+    
+    <p>Welcome to Bloggr! We're excited to have you as part of our community.</p>
+    
+    <p>Your account has been successfully created. You can now start creating and sharing your blog posts with the world!</p>
+    
+    <p style="text-align: center;">
+        <a href="{{ login_url }}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold;">
+            Log In Now
+        </a>
+    </p>
+    
+    <p>Here's what you can do with Bloggr:</p>
+    <ul style="color: #666; line-height: 1.8;">
+        <li>Create and publish blog posts</li>
+        <li>Share your thoughts with the community</li>
+        <li>Engage with other bloggers</li>
+    </ul>
+    
+    <p>If you have any questions, feel free to reach out to us.</p>
+    
+    <p>Happy blogging!</p>
+{% endblock %}

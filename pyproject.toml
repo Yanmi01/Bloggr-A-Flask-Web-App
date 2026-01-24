@@ -1,9 +1,16 @@
 [project]
-name = "Bloggr"
+name = "bloggr"
 version = "1.0.0"
 description = "A basic blogging app built with python and flask"
 dependencies = [
     "flask",
+    "gunicorn",
+    "authlib",
+    "requests",
+    "python-dotenv",
+    "itsdangerous",
+    "werkzeug",
+    "flask-mail"
 ]
 
 [build-system]

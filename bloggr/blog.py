@@ -67,6 +67,13 @@ def get_post(id, check_author=True):
 
     return post
 
+# add a detailed view to each post
+@bp.route("/<int:id>/detailed_view")
+def detailed_view(id):
+    post = get_post(id, check_author = True)
+    return render_template("blog/detailed_view.html", post = post)
+
+
 @bp.route("/<int:id>/update", methods = ("GET", "POST"))
 @login_required
 def update(id):
@@ -102,4 +109,39 @@ def delete(id):
     db = get_db()
     db.execute("DELETE FROM post WHERE id = ?", (id,))
     db.commit()
+    return redirect(url_for("blog.index"))
+
+@bp.route("/<int:id>/like", methods= ("POST",))
+@login_required
+def like_post(id):
+    db = get_db()
+    post = get_post(id, check_author=False)
+
+    current_likes = db.execute(
+        "SELECT id FROM post_likes WHERE post_id = ? AND user_id =?",
+        (id, g.user["id"])
+    ).fetchone()
+
+    if current_likes is None:
+        db.execute(
+            "INSERT INTO pos_likes (post_id, user_id) VALUES (?, ?)"
+            (id, g.user["id"])
+        )
+        db.commit()
+
+    return redirect(url_for("blog_index"))
+
+
+@bp.route("/<int:id>/unlike", methods= ("POST",))
+@login_required
+def unlike_post(id):
+    db = get_db()
+    post = get_post(id, check_author=False)
+
+    db.execute(
+        "DELETE FROM post_like WHERE post_id =? AND user_id = ?",
+        (id, g.user["id"])
+    )
+    db.commit()
+
     return redirect(url_for("blog.index"))

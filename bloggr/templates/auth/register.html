@@ -8,8 +8,18 @@
   <form method="post">
     <label for="username">Username</label>
     <input name="username" id="username" required>  <!--This required field ensures that the attribute is filled before submission-->
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required>
     <label for="password">Password</label>
     <input type="password" name="password" id="password" required>
     <input type="submit" value="Register">
   </form>
+
+  <hr>
+
+  <div class="google-login">
+    <a href="{{ url_for('auth.login_google') }}" class="google-btn">
+      Sign up with Google
+    </a>
+  </div>
 {% endblock %}
