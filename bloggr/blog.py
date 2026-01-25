@@ -124,7 +124,7 @@ def like_post(id):
 
     if current_likes is None:
         db.execute(
-            "INSERT INTO pos_likes (post_id, user_id) VALUES (?, ?)"
+            "INSERT INTO pos_likes (post_id, user_id) VALUES (?, ?)",
             (id, g.user["id"])
         )
         db.commit()
