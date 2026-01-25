@@ -58,13 +58,21 @@ def register():
                 )
                 db.commit()
 
-                send_welcome_email(email, username)
+                email_sent = False
+                try:
+                    send_welcome_email(email, username)
+                    email_sent = True
+                except Exception as e:
+                    print(f"Failed to send welcome email: {e}")
                 
-                flash("Registration successful! We sent you a mail. Kindly log in.")
+                if email_sent:
+                    flash("Registration successful! We sent you a welcome email. Kindly log in.")
+                else:
+                    flash("Registration successful! Please log in.")
 
                 return redirect(url_for("auth.login"))
 
-            except db.IntegrityError:           # if this returns an error, remove the db and just use integrityerror
+            except db.IntegrityError:
                 error = f"User {username} is already registered."
             
         flash(error)
@@ -130,7 +138,7 @@ def authorize_google():
         resp = google.get("https://www.googleapis.com/oauth2/v3/userinfo")
 
         if not resp.ok:
-            raise Exception("Failed to fetch user info from Google")
+            raise Exception(f"Failed to fetch user info from Google.  Status: {resp.status_code}")
         
         user_info = resp.json()
         email = user_info["email"]
@@ -150,13 +158,24 @@ def authorize_google():
 
             random_password = secrets.token_urlsafe(32)
 
-            db.execute(
-                "INSERT INTO user (username, email, password) VALUES (?, ?, ?)",
-                (username, email, generate_password_hash(random_password))
-            )
-            db.commit()
+            try:
+                db.execute(
+                    "INSERT INTO user (username, email, password) VALUES (?, ?, ?)",
+                    (username, email, generate_password_hash(random_password))
+                )
+                db.commit()
+            except db.IntehrityError:
+                username = f"{username}_{secrets.token_hex(4)}"
+                db.execute(
+                    "INSERT INTO user (username, email, password) VALUES (?, ?, ?)",
+                    (username, email, generate_password_hash(random_password))
+                )
+                db.commit()
 
-            send_welcome_email(email, username)
+            try:
+                send_welcome_email(email, username)
+            except Exception as e:
+                current_app.logger.error(f"Failed to send welcome email to {email}: {e}")
 
             user = db.execute(
                 "SELECT * FROM user WHERE email = ?", (email,)
@@ -171,7 +190,7 @@ def authorize_google():
     except Exception as e:
         current_app.logger.error(f"Error during Google authorization: {str(e)}")
         flash("Error occurred during Google login")
-        return redirect(url_for("auth.login"))     
+        return redirect(url_for("auth.login"))      
 
 
 @bp.before_app_request
