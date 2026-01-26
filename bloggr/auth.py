@@ -1,5 +1,6 @@
 import functools
 import secrets
+import sqlite3
 
 from flask import (
     Blueprint, 
@@ -57,24 +58,27 @@ def register():
                     (username, email, generate_password_hash(password))
                 )
                 db.commit()
-
-                email_sent = False
-                try:
-                    send_welcome_email(email, username)
-                    email_sent = True
-                except Exception as e:
-                    print(f"Failed to send welcome email: {e}")
-                
-                if email_sent:
-                    flash("Registration successful! We sent you a welcome email. Kindly log in.")
-                else:
-                    flash("Registration successful! Please log in.")
-
-                return redirect(url_for("auth.login"))
-
-            except db.IntegrityError:
+            except sqlite3.IntegrityError:
                 error = f"User {username} is already registered."
+                flash(error)
+                return render_template("auth/register.html")
+  
+            # Try to send welcome email, but don't block registration if it fails
+            email_sent = False
+            try:
+                send_welcome_email(email, username)
+                email_sent = True
+            except Exception as e:
+                current_app.logger.error(f"Failed to send welcome email: {e}")
             
+            if email_sent:
+                flash("Registration successful! We sent you a welcome email. Kindly log in.")
+            else:
+                flash("Registration successful! Please log in.")
+
+            return redirect(url_for("auth.login"))
+
+                      
         flash(error)
 
     return render_template("auth/register.html")
@@ -133,7 +137,12 @@ def login_google():
 @bp.route("/authorize/google")
 def authorize_google():
     try:
-        google.authorize_access_token()
+        token = google.authorize_access_token()
+        
+        if not token:
+            flash("Google authorization was cancelled or failed. Please try again.")
+            return redirect(url_for("auth.login"))
+        
         # resp = google.get("userinfo")
         resp = google.get("https://www.googleapis.com/oauth2/v3/userinfo")
 
@@ -141,13 +150,13 @@ def authorize_google():
             raise Exception(f"Failed to fetch user info from Google.  Status: {resp.status_code}")
         
         user_info = resp.json()
-        email = user_info["email"]
-        username = email.split('@')[0]
+        email = user_info.get("email")
 
-        
         if not email:
             flash("Invalid Email")
             return redirect(url_for("auth.login"))
+        
+        username = email.split('@')[0]
 
         db = get_db()
         user = db.execute(
@@ -164,7 +173,7 @@ def authorize_google():
                     (username, email, generate_password_hash(random_password))
                 )
                 db.commit()
-            except db.IntehrityError:
+            except sqlite3.IntegrityError:
                 username = f"{username}_{secrets.token_hex(4)}"
                 db.execute(
                     "INSERT INTO user (username, email, password) VALUES (?, ?, ?)",

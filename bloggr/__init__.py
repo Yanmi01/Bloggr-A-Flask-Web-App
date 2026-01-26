@@ -12,9 +12,13 @@ def create_app(test_config=None):
     #create and configure the app
     app = Flask(__name__, instance_relative_config = True)
     app.config.from_mapping(
-        SECRET_KEY = "dev",
+        SECRET_KEY = os.environ.get('SECRET_KEY', 'dev'),
         DATABASE = os.path.join(app.instance_path, "BLOGGR.sqlite"),
 
+        SESSION_COOKIE_SECURE=True,     
+        SESSION_COOKIE_HTTPONLY=True,    
+        SESSION_COOKIE_SAMESITE='Lax', 
+        
         GOOGLE_CLIENT_ID=os.environ.get('GOOGLE_CLIENT_ID'),
         GOOGLE_CLIENT_SECRET=os.environ.get('GOOGLE_CLIENT_SECRET'),
 
