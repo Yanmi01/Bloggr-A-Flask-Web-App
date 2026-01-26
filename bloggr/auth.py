@@ -276,8 +276,12 @@ def send_password_reset_email(user_email, token):
 
         msg.html = render_template("email/reset_password.html", reset_url = reset_url)
 
-        mail.send(msg)
-        current_app.logger.info(f"Password reset email sent to {user_email}")
+        try:
+            mail.send(msg)
+            current_app.logger.info(f"Password reset email sent to {user_email}")
+        except Exception as e:
+            print(f"SMTP Error: {str(e)}")
+            return False
         return True
     
     except Exception as e:
@@ -285,7 +289,6 @@ def send_password_reset_email(user_email, token):
         return False
 
 def send_welcome_email(user_email, username):
-    """Send welcome email to newly registered user"""
     try:
         msg = Message(
             subject='Welcome to Bloggr!',
