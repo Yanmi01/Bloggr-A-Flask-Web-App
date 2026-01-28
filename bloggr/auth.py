@@ -300,8 +300,13 @@ def send_welcome_email(user_email, username):
             login_url=url_for('auth.login', _external=True)
         )
 
-        mail.send(msg)
-        current_app.logger.info(f"Welcome email sent to {user_email}")
+        try:
+            mail.send(msg)
+            current_app.logger.info(f"Welcome email sent to {user_email}")
+        except Exception as e:
+            current_app.logger.error(f"SMTP connection failed: {e}")
+            return False
+            
         return True
     except Exception as e:
         current_app.logger.error(f"Error sending welcome email: {str(e)}")
