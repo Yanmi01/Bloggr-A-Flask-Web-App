@@ -63,21 +63,19 @@ def register():
                 flash(error)
                 return render_template("auth/register.html")
 
-            #set
-            # Try to send welcome email, but don't block registration if it fails
-            # email_sent = False
-            # try:
-            #     send_welcome_email(email, username)
-            #     email_sent = True
-            # except Exception as e:
-            #     current_app.logger.error(f"Failed to send welcome email: {e}")
+            email_sent = False
+            try:
+                send_welcome_email(email, username)
+                email_sent = True
+            except Exception as e:
+                current_app.logger.error(f"Failed to send welcome email: {e}")
             
-            # if email_sent:
-            #     flash("Registration successful! We sent you a welcome email. Kindly log in.")
-            # else:
-            #     flash("Registration successful! Please log in.")
+            if email_sent:
+                flash("Registration successful! We sent you a welcome email. Kindly log in.")
+            else:
+                flash("Registration successful! Please log in.")
 
-            # return redirect(url_for("auth.login"))
+            return redirect(url_for("auth.login"))
 
                       
         flash(error)
@@ -182,10 +180,10 @@ def authorize_google():
                 )
                 db.commit()
 
-            # try:
-            #     send_welcome_email(email, username)
-            # except Exception as e:
-            #     current_app.logger.error(f"Failed to send welcome email to {email}: {e}")
+            try:
+                send_welcome_email(email, username)
+            except Exception as e:
+                current_app.logger.error(f"Failed to send welcome email to {email}: {e}")
 
             user = db.execute(
                 "SELECT * FROM user WHERE email = ?", (email,)
