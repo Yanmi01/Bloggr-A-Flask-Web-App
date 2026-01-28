@@ -194,10 +194,12 @@ def authorize_google():
             #     current_app.logger.error(f"Failed to send welcome email to {email}: {e}")
 
             # Send welcome email in background using thread
+            login_url = url_for('auth.login', _external=True)
+            
             app = current_app._get_current_object()
             thread = threading.Thread(
                 target=send_welcome_email_async,
-                args=(email, username, app)
+                args=(email, username, app, login_url)
             )
             thread.daemon = True
             thread.start()
@@ -314,7 +316,8 @@ def send_welcome_email(user_email, username):
         msg.html = render_template(
             "email/welcome.html", 
             username=username,
-            login_url=url_for('auth.login', _external=True)
+            # login_url=url_for('auth.login', _external=True)
+            login_url = login_url
         )
 
         try:
