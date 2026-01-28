@@ -305,7 +305,7 @@ def send_password_reset_email(user_email, token):
         current_app.logger.error(f"Error sending email: {str(e)}")
         return False
 
-def send_welcome_email(user_email, username):
+def send_welcome_email(user_email, username, login_url):
     try:
         msg = Message(
             subject='Welcome to Bloggr!',
@@ -332,11 +332,11 @@ def send_welcome_email(user_email, username):
         current_app.logger.error(f"Error sending welcome email: {str(e)}")
         return False
 
-def send_welcome_email_async(user_email, username, app):
+def send_welcome_email_async(user_email, username, app, login_url):
     """Send email in background thread"""
     with app.app_context():
         try:
-            send_welcome_email(user_email, username)
+            send_welcome_email(user_email, username, login_url)
         except Exception as e:
             app.logger.error(f"Background email failed: {e}")
 
