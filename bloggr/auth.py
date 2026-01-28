@@ -1,6 +1,7 @@
 import functools
 import secrets
 import sqlite3
+import threading
 
 from flask import (
     Blueprint, 
@@ -63,20 +64,27 @@ def register():
                 flash(error)
                 return render_template("auth/register.html")
 
-            email_sent = False
-            try:
-                send_welcome_email(email, username)
-                email_sent = True
-            except Exception as e:
-                current_app.logger.error(f"Failed to send welcome email: {e}")
+            # email_sent = False
+            # try:
+            #     send_welcome_email(email, username)
+            #     email_sent = True
+            # except Exception as e:
+            #     current_app.logger.error(f"Failed to send welcome email: {e}")
             
-            if email_sent:
-                flash("Registration successful! We sent you a welcome email. Kindly log in.")
-            else:
-                flash("Registration successful! Please log in.")
-
+            # if email_sent:
+            #     flash("Registration successful! We sent you a welcome email. Kindly log in.")
+            # else:
+            #     flash("Registration successful! Please log in.")
+            app = current_app._get_current_object()
+            thread = threading.Thread(
+                target=send_welcome_email_async,
+                args=(email, username, app)
+            )
+            thread.daemon = True
+            thread.start()
+            
+            flash("Registration successful! Please log in.")
             return redirect(url_for("auth.login"))
-
                       
         flash(error)
 
@@ -180,10 +188,19 @@ def authorize_google():
                 )
                 db.commit()
 
-            try:
-                send_welcome_email(email, username)
-            except Exception as e:
-                current_app.logger.error(f"Failed to send welcome email to {email}: {e}")
+            # try:
+            #     send_welcome_email(email, username)
+            # except Exception as e:
+            #     current_app.logger.error(f"Failed to send welcome email to {email}: {e}")
+
+            # Send welcome email in background using thread
+            app = current_app._get_current_object()
+            thread = threading.Thread(
+                target=send_welcome_email_async,
+                args=(email, username, app)
+            )
+            thread.daemon = True
+            thread.start()
 
             user = db.execute(
                 "SELECT * FROM user WHERE email = ?", (email,)
@@ -311,6 +328,14 @@ def send_welcome_email(user_email, username):
     except Exception as e:
         current_app.logger.error(f"Error sending welcome email: {str(e)}")
         return False
+
+def send_welcome_email_async(user_email, username, app):
+    """Send email in background thread"""
+    with app.app_context():
+        try:
+            send_welcome_email(user_email, username)
+        except Exception as e:
+            app.logger.error(f"Background email failed: {e}")
 
 @bp.route("/forgot_password", methods = ("GET", "POST"))
 def forgot_password():
